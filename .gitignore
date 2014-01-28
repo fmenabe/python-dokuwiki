@@ -1,3 +1,9 @@
+# vim tmp files
+*.swp
+
+# Virtualenv
+env*/
+
 *.py[cod]
 
 # C extensions
