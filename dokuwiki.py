@@ -4,10 +4,10 @@ import sys
 import weakref
 from xml.parsers.expat import ExpatError
 if sys.version_info[0] == 3:
-    from xmlrpc.client import ServerProxy, Fault, Binary
+    from xmlrpc.client import ServerProxy, Binary, Fault
     from urllib.parse import urlencode
 else:
-    from xmlrpclib import ServerProxy, Fault, Binary
+    from xmlrpclib import ServerProxy, Binary, Fault
     from urllib import urlencode
 
 ERR = 'XML or text declaration not at start of entity: line 2, column 0'
@@ -52,7 +52,9 @@ class DokuWiki(object):
         try:
             return method(*args)
         except Fault as err:
-            if err.faultCode == 321:
+            if err.faultCode == 121:
+                return {}
+            elif err.faultCode == 321:
                 return []
             raise DokuWikiError(err)
         except ExpatError as err:
