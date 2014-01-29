@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import re
 import sys
 import weakref
 from xml.parsers.expat import ExpatError
@@ -191,3 +192,48 @@ class _Medias(object):
 
     def delete(self, media):
         return self._dokuwiki.send('wiki.deleteAttachment', media)
+
+
+class Dataentry(object):
+    @staticmethod
+    def get(content, keep_order=False):
+        if keep_order:
+            from collections import OrderedDict
+            dataentry = OrderedDict()
+        else:
+            dataentry = {}
+
+        found = False
+        for line in content.split('\n'):
+            if line.strip().startswith('---- dataentry'):
+                found = True
+                continue
+            elif line == '----':
+                break
+            elif not found:
+                continue
+
+            line_split = line.split(':')
+            dataentry.setdefault(line_split[0].strip(),
+                re.sub('#.*$', '', ':'.join(line_split[1:])).strip())
+
+        if not found:
+            raise DokuWikiError('no dataentry found')
+        return dataentry
+
+    @staticmethod
+    def gen(name, datas):
+        return '---- dataentry %s ----\n%s\n----' % (name, '\n'.join(
+            '%s:%s' % (attr, value) for attr, value in datas.items()))
+
+    @staticmethod
+    def ignore(content):
+        page_content = []
+        start = False
+        for line in content.split('\n'):
+            if line == '----':
+                start = True
+                continue
+            if start:
+                page_content.append(line)
+        return '\n'.join(page_content) if page_content else content
