@@ -231,7 +231,7 @@ class Dataentry(object):
         page_content = []
         start = False
         for line in content.split('\n'):
-            if line == '----':
+            if line == '----' and not start:
                 start = True
                 continue
             if start:
