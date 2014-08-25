@@ -185,15 +185,19 @@ Code: ::
     from dokuwiki import DokuWiki, DokuWikiError
 
     try:
-        wiki = DokuWiki('https://mydoku.example.org', 'myuser', 'mypassword')
-     except DokuWikiError as err:
+        wiki = DokuWiki('https://mydoku.example.org/pathtodokuwiki', 'myuser', 'mypassword')
+    except DokuWikiError as err:
         print(err)
         sys.exit(1)
 
     print(wiki.version) # => 'Release 2012-10-13 "Adora Belle"'
     print(wiki.pages.list()) # list all pages of the wiki
-    print(wiki.pages.list('my:namespace') # list all pages in the given namespace
+    print(wiki.pages.list('my:namespace')) # list all pages in the given namespace
     print(wiki.pages.get('my:namespace:page')) # print the content of the page
+
+For this example to function, ensure:
+1) pip install dokuwiki has completed without errors
+2) Within the target dokuwiki Configuration Manager web interface, under remote, Enable the remote API system. Restrict the remote user from anyone a certain user.
 
 
 Release notes
