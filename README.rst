@@ -202,11 +202,15 @@ For this example to function, ensure:
 
 Release notes
 -------------
-0.1
-~~~
-    * Implement DokuWiki XML-RPC commands
-    * Compatible with both python 2 and 3
+0.2.1
+~~~~~
+    * Correct a bug with ``use_datetime`` (https://github.com/fmenabe/python-dokuwiki/pull/3).
 
 0.2
 ~~~
-    * Manage dataentries (this is a plugin for managing metadatas)
+    * Manage dataentries (this is a plugin for managing metadatas).
+
+0.1
+~~~
+    * Implement DokuWiki XML-RPC commands.
+    * Compatible with both python 2 and 3.
