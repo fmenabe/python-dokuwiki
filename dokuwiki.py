@@ -31,10 +31,9 @@ class DokuWiki(object):
     def __init__(self, url, user, password, **kwargs):
         """Initialize the object by connecting to the XMLRPC server."""
         # Initialize XMLRPC client.
-        use_datetime = kwargs.pop('use_datetime', True)
         url = '%s/lib/exe/xmlrpc.php?%s' % (
             url, urlencode({'u': user, 'p': password}))
-        self.proxy = ServerProxy(url, use_datetime=use_datetime, **kwargs)
+        self.proxy = ServerProxy(url, **kwargs)
 
         # Set "namespaces" for pages and medias functions.
         self.pages = _Pages(weakref.ref(self)())
