@@ -202,9 +202,9 @@ For this example to function, ensure:
 
 Release notes
 -------------
-0.2.1
-~~~~~
-    * Correct a bug with ``use_datetime`` (https://github.com/fmenabe/python-dokuwiki/pull/3).
+0.3
+~~~
+    * The xmlrpc parameter ``use_datetime`` is no longer forced to *True* by default (https://github.com/fmenabe/python-dokuwiki/pull/3). **This may break things!**
 
 0.2
 ~~~

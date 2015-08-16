@@ -3,7 +3,7 @@
 from distutils.core import setup
 setup(
     name = 'dokuwiki',
-    version = '0.2.1',
+    version = '0.3.0',
     author = 'François Ménabé',
     author_email = 'francois.menabe@gmail.com',
     url = 'http://github.com/fmenabe/python-dokuwiki',
@@ -13,7 +13,7 @@ setup(
     long_description=open('README.rst').read(),
     keywords=['xmlrpc', 'dokuwiki'],
     classifiers=[
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable',
         'Programming Language :: Python',
         'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
