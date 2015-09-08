@@ -112,8 +112,11 @@ class _Pages(object):
         return (self._dokuwiki.send('wiki.getPageInfoVersion', pagename, version)
             if version else self._dokuwiki.send('wiki.getPageInfo', pagename))
 
-    def get(self, pagename, version=''):
-        return (self._dokuwiki.send('wiki.getPageVersion', pagename, version))
+    def get(self, pagename, version=None):
+        if version is None:
+            return self._dokuwiki.send('wiki.getPage', pagename)
+
+        return self._dokuwiki.send('wiki.getPageVersion', pagename, version)
 
     def append(self, pagename, content, **options):
         return self._dokuwiki.send(
