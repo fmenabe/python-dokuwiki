@@ -97,7 +97,7 @@ class _Pages(object):
         self._dokuwiki = dokuwiki
 
     def list(self, namespace='/', **options):
-        return self._dokuwiki.send('dokuwiki.getPagelist', namespace, **options)
+        return self._dokuwiki.send('dokuwiki.getPagelist', namespace, options)
 
     def changes(self, timestamp):
         return self._dokuwiki.send('wiki.getRecentChanges', timestamp)
@@ -117,7 +117,7 @@ class _Pages(object):
 
     def append(self, pagename, content, **options):
         return self._dokuwiki.send(
-            'dokuwiki.appendPage', pagename, content, **options)
+            'dokuwiki.appendPage', pagename, content, options)
 
     def html(self, pagename, version=''):
         return (self._dokuwiki.send('wiki.getPageHTMLVersion', pagename, version)
@@ -126,7 +126,7 @@ class _Pages(object):
     def set(self, pagename, content, **options):
         try:
             return self._dokuwiki.send(
-                'wiki.putPage', pagename, content, **options)
+                'wiki.putPage', pagename, content, options)
         except ExpatError as err:
             # Sometime the first line of the XML response is blank which raise
             # the 'ExpatError' exception although the change has been done. This
@@ -167,7 +167,7 @@ class _Medias(object):
         return self._dokuwiki.send('wiki.getRecentMediaChanges', timestamp)
 
     def list(self, namespace='/', **options):
-        return self._dokuwiki.send('wiki.getAttachments', namespace, **options)
+        return self._dokuwiki.send('wiki.getAttachments', namespace, options)
 
     def get(self, media, dirpath, filename='', overwrite=False):
         import os
