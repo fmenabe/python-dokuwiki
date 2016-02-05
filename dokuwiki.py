@@ -11,7 +11,7 @@ else:
     from xmlrpclib import ServerProxy, Binary, Fault
     from urllib import urlencode
 
-from base64 import b64decode
+from base64 import b64decode, b64encode
 
 ERR = 'XML or text declaration not at start of entity: line 2, column 0'
 
@@ -198,6 +198,10 @@ class _Medias(object):
         with open(filepath, 'rb') as fhandler:
             self._dokuwiki.send('wiki.putAttachment',
                 media, Binary(fhandler.read()), ow=overwrite)
+
+    def set(self, media, _bytes, overwrite=True):
+        self._dokuwiki.send('wiki.putAttachment', media,
+                            b64encode(_bytes), ow=overwrite)
 
     def delete(self, media):
         return self._dokuwiki.send('wiki.deleteAttachment', media)
