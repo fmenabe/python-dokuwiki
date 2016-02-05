@@ -11,6 +11,8 @@ else:
     from xmlrpclib import ServerProxy, Binary, Fault
     from urllib import urlencode
 
+from base64 import b64decode
+
 ERR = 'XML or text declaration not at start of entity: line 2, column 0'
 
 def utc2local(date):
@@ -172,8 +174,13 @@ class _Medias(object):
     def list(self, namespace='/', **options):
         return self._dokuwiki.send('wiki.getAttachments', namespace, options)
 
-    def get(self, media, dirpath, filename='', overwrite=False):
+    def get(self, media, dirpath=None, filename='', overwrite=False):
         import os
+        data = self._dokuwiki.send('wiki.getAttachment', media)
+        data = b64decode(data)
+        if dirpath is None:
+            return data
+
         if not filename:
             filename = media.replace('/', ':').split(':')[-1]
         if not os.path.exists(dirpath):
@@ -182,7 +189,7 @@ class _Medias(object):
         if os.path.exists(filepath) and not overwrite:
             raise FileExistsError("[Errno 17] File exists: '%s'" % filepath)
         with open(filepath, 'wb') as fhandler:
-            fhandler.write(self._dokuwiki.send('wiki.getAttachment', media).data)
+            fhandler.write(data)
 
     def info(self, media):
         return self._dokuwiki.send('wiki.getAttachmentInfo', media)
