@@ -33,9 +33,11 @@ class DokuWiki(object):
     def __init__(self, url, user, password, **kwargs):
         """Initialize the object by connecting to the XMLRPC server."""
         # Initialize XMLRPC client.
-        url = '%s/lib/exe/xmlrpc.php?%s' % (
-            url, urlencode({'u': user, 'p': password}))
+        url = '%s/lib/exe/xmlrpc.php?%s' % ( url, urlencode({'u': user, 'p': password}))
         self.proxy = ServerProxy(url, **kwargs)
+        # Force login to check the connection.
+        if not self.login(user, password):
+            raise DokuWikiError('invalid login or password!')
 
         # Set "namespaces" for pages and medias functions.
         self.pages = _Pages(weakref.ref(self)())
