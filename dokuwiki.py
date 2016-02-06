@@ -92,7 +92,7 @@ class DokuWiki(object):
     def add_acl(self, scope, user, permission):
         return self.send('plugin.acl.addAcl', scope, user, permission)
 
-    def del_acl(self, scope, user, permission):
+    def del_acl(self, scope, user):
         return self.send('plugin.acl.delAcl', scope, user)
 
 
