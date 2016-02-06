@@ -11,6 +11,8 @@ else:
     from xmlrpclib import ServerProxy, Binary, Fault
     from urllib import urlencode
 
+from base64 import b64decode, b64encode
+
 ERR = 'XML or text declaration not at start of entity: line 2, column 0'
 
 def utc2local(date):
@@ -97,7 +99,7 @@ class _Pages(object):
         self._dokuwiki = dokuwiki
 
     def list(self, namespace='/', **options):
-        return self._dokuwiki.send('dokuwiki.getPagelist', namespace, **options)
+        return self._dokuwiki.send('dokuwiki.getPagelist', namespace, options)
 
     def changes(self, timestamp):
         return self._dokuwiki.send('wiki.getRecentChanges', timestamp)
@@ -112,12 +114,15 @@ class _Pages(object):
         return (self._dokuwiki.send('wiki.getPageInfoVersion', pagename, version)
             if version else self._dokuwiki.send('wiki.getPageInfo', pagename))
 
-    def get(self, pagename, version=''):
-        return (self._dokuwiki.send('wiki.getPageVersion', pagename, version))
+    def get(self, pagename, version=None):
+        if version is None:
+            return self._dokuwiki.send('wiki.getPage', pagename)
+
+        return self._dokuwiki.send('wiki.getPageVersion', pagename, version)
 
     def append(self, pagename, content, **options):
         return self._dokuwiki.send(
-            'dokuwiki.appendPage', pagename, content, **options)
+            'dokuwiki.appendPage', pagename, content, options)
 
     def html(self, pagename, version=''):
         return (self._dokuwiki.send('wiki.getPageHTMLVersion', pagename, version)
@@ -126,7 +131,7 @@ class _Pages(object):
     def set(self, pagename, content, **options):
         try:
             return self._dokuwiki.send(
-                'wiki.putPage', pagename, content, **options)
+                'wiki.putPage', pagename, content, options)
         except ExpatError as err:
             # Sometime the first line of the XML response is blank which raise
             # the 'ExpatError' exception although the change has been done. This
@@ -167,10 +172,15 @@ class _Medias(object):
         return self._dokuwiki.send('wiki.getRecentMediaChanges', timestamp)
 
     def list(self, namespace='/', **options):
-        return self._dokuwiki.send('wiki.getAttachments', namespace, **options)
+        return self._dokuwiki.send('wiki.getAttachments', namespace, options)
 
-    def get(self, media, dirpath, filename='', overwrite=False):
+    def get(self, media, dirpath=None, filename='', overwrite=False):
         import os
+        data = self._dokuwiki.send('wiki.getAttachment', media)
+        data = b64decode(data)
+        if dirpath is None:
+            return data
+
         if not filename:
             filename = media.replace('/', ':').split(':')[-1]
         if not os.path.exists(dirpath):
@@ -179,7 +189,7 @@ class _Medias(object):
         if os.path.exists(filepath) and not overwrite:
             raise FileExistsError("[Errno 17] File exists: '%s'" % filepath)
         with open(filepath, 'wb') as fhandler:
-            fhandler.write(self._dokuwiki.send('wiki.getAttachment', media).data)
+            fhandler.write(data)
 
     def info(self, media):
         return self._dokuwiki.send('wiki.getAttachmentInfo', media)
@@ -188,6 +198,10 @@ class _Medias(object):
         with open(filepath, 'rb') as fhandler:
             self._dokuwiki.send('wiki.putAttachment',
                 media, Binary(fhandler.read()), ow=overwrite)
+
+    def set(self, media, _bytes, overwrite=True):
+        self._dokuwiki.send('wiki.putAttachment', media,
+                            b64encode(_bytes), ow=overwrite)
 
     def delete(self, media):
         return self._dokuwiki.send('wiki.deleteAttachment', media)
