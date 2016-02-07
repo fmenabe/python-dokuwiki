@@ -26,15 +26,25 @@ else:
     from xmlrpclib import ServerProxy, Binary, Fault
     from urllib import urlencode
 
+from datetime import datetime, timedelta
 from base64 import b64decode, b64encode
 
 ERR = 'XML or text declaration not at start of entity: line 2, column 0'
 
+def date(date):
+    """DokuWiki returns dates of ``xmlrpclib``/``xmlrpc.client`` **DateTime**
+    type and the format changes between DokuWiki versions ... This function
+    convert *date* to a ``datetime`` object.
+    """
+    date = date.value
+    return (datetime.strptime(date[:-5], '%Y-%m-%dT%H:%M:%S')
+            if len(date) == 24
+            else datetime.strptime(date, '%Y%m%dT%H:%M:%S'))
+
 def utc2local(date):
-    """Dates returned by some commands are in UTC format. This function convert this date
+    """DokuWiki returns date with a +0000 timezone. This function convert *date*
     to the local time.
     """
-    from datetime import datetime, timedelta
     date_offset = (datetime.now() - datetime.utcnow())
     # Python < 2.7 don't have the 'total_seconds' method so calculate it by hand!
     date_offset = (date_offset.microseconds +

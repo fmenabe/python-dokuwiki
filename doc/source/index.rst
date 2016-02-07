@@ -6,12 +6,16 @@
 python-dokuwiki documentation
 =============================
 
+.. toctree::
+    :maxdepth: 2
+
 .. automodule:: dokuwiki
 
 API
 ---
 Functions
 ~~~~~~~~~~
+.. autofunction:: date
 .. autofunction:: utc2local
 
 Exceptions
