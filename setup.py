@@ -3,10 +3,10 @@
 from distutils.core import setup
 setup(
     name = 'dokuwiki',
-    version = '0.3.0',
+    version = '0.4.0',
     author = 'François Ménabé',
     author_email = 'francois.menabe@gmail.com',
-    url = 'http://github.com/fmenabe/python-dokuwiki',
+    url = 'http://python-dokuwiki.readthedocs.org/en/latest/',
     download_url='https://github.com/fmenabe/python-dokuwiki',
     license='MIT License',
     description = 'Manage DokuWiki via XML-RPC API.',
