@@ -30,8 +30,8 @@ API is described `here <http://python-dokuwiki.readthedocs.org/en/latest/>`_.
 
 Release notes
 -------------
-0.4 (not released)
-~~~~~~~~~~~~~~~~~~
+0.4 (2016-02-07)
+~~~~~~~~~~~~~~~~
     * Allow media to be get/set as bytes (`44c6dcf <https://github.com/fmenabe/python-dokuwiki/commit/44c6dcf>`_, `1621291 <https://github.com/fmenabe/python-dokuwiki/commit/1621291>`_)
     * Force login after XML-RPC initialization for ensuring the connection is working (`55ffff8 <https://github.com/fmenabe/python-dokuwiki/commit/55ffff8>`_)
     * Fix minor bugs (`d5b7163 <https://github.com/fmenabe/python-dokuwiki/commit/d5b7163>`_, `9b164ea <https://github.com/fmenabe/python-dokuwiki/commit/9b164ea>`_)
