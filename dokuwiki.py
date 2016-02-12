@@ -32,9 +32,9 @@ from base64 import b64decode, b64encode
 ERR = 'XML or text declaration not at start of entity: line 2, column 0'
 
 def date(date):
-    """DokuWiki returns dates of ``xmlrpclib``/``xmlrpc.client`` **DateTime**
+    """DokuWiki returns dates of `xmlrpclib`/`xmlrpc.client` ``DateTime``
     type and the format changes between DokuWiki versions ... This function
-    convert *date* to a ``datetime`` object.
+    convert *date* to a `datetime` object.
     """
     date = date.value
     return (datetime.strptime(date[:-5], '%Y-%m-%dT%H:%M:%S')
@@ -61,11 +61,11 @@ class DokuWikiError(Exception):
 class DokuWiki(object):
     """Initialize a connection to a DokuWiki wiki. *url*, *user* and
     *password* are respectively the URL, the login and the password for
-    connecting to the wiki. *kwargs* are ``xmlrpclib``/``xmlrpc.client``
+    connecting to the wiki. *kwargs* are `xmlrpclib`/`xmlrpc.client`
     **ServerProxy** parameters.
 
-    The exception ``DokuWikiError`` is raised if the authentification
-    fails but others exceptions (like ``gaierror`` for invalid domain,
+    The exception `DokuWikiError` is raised if the authentification
+    fails but others exceptions (like ``gaierror` for invalid domain,
     ``ProtocolError`` for an invalid wiki, ...) are not catched.
 
     .. code::
@@ -167,7 +167,7 @@ class DokuWiki(object):
 
 class _Pages(object):
     """This object regroup methods for managing pages of a DokuWiki. This object
-    is accessible from the ``pages`` property of an **DokuWiki** instance::
+    is accessible from the ``pages`` property of an `DokuWiki` instance::
 
         wiki = dokuwiki.DokuWiki('URL', 'User', 'Password')
         wiki.pages.list()
@@ -294,7 +294,7 @@ class _Pages(object):
 
 class _Medias(object):
     """This object regroup methods for managing medias of a DokuWiki. This
-    object is accessible from the ``medias`` property of an **DokuWiki**
+    object is accessible from the ``medias`` property of an `DokuWiki`
     instance::
 
         wiki = dokuwiki.DokuWiki('URL', 'User', 'Password')

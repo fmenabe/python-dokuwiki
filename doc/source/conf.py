@@ -15,6 +15,9 @@
 
 import sys
 import os
+import inspect
+from collections import OrderedDict
+import sphinx_rtd_theme
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -33,8 +36,65 @@ sys.path.insert(0, os.path.abspath('../..'))
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.doctest',
-    'sphinx.ext.viewcode',
+    'sphinx.ext.intersphinx',
+    'sphinx.ext.linkcode',
 ]
+
+intersphinx_mapping = OrderedDict((
+    ('python3', ('https://docs.python.org/3', None)),
+    ('python2', ('https://docs.python.org/2', None)),
+))
+
+def linkcode_resolve(domain, info):
+    """A simple function to find matching source code."""
+    module_name = info['module']
+    fullname = info['fullname']
+    attribute_name = fullname.split('.')[-1]
+    base_url = 'https://github.com/fmenabe/python-dokuwiki/blob/'
+
+    if release.endswith('-dev'):
+        base_url += 'master/'
+    else:
+        base_url += version + '/'
+
+    filename = module_name.replace('.', '/') + '.py'
+    module = sys.modules.get(module_name)
+
+    # Get the actual object
+    try:
+        actual_object = module
+        for obj in fullname.split('.'):
+            parent = actual_object
+            actual_object = getattr(actual_object, obj)
+    except AttributeError:
+        return None
+
+    # Fix property methods by using their getter method
+    if isinstance(actual_object, property):
+        actual_object = actual_object.fget
+
+    # Try to get the linenumber of the object
+    try:
+        source, start_line = inspect.getsourcelines(actual_object)
+    except TypeError:
+        # If it can not be found, try to find it anyway in the parents its
+        # source code
+        parent_source, parent_start_line = inspect.getsourcelines(parent)
+        for i, line in enumerate(parent_source):
+            if line.strip().startswith(attribute_name):
+                start_line = parent_start_line + i
+                end_line = start_line
+                break
+        else:
+            return None
+
+    else:
+        end_line = start_line + len(source) - 1
+
+    line_anchor = '#L%d-L%d' % (start_line, end_line)
+
+    return base_url + filename + line_anchor
+
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -83,7 +143,7 @@ exclude_patterns = []
 
 # The reST default role (used for this markup: `text`) to use for all
 # documents.
-#default_role = None
+default_role = 'py:obj'
 
 # If true, '()' will be appended to :func: etc. cross-reference text.
 #add_function_parentheses = True
@@ -113,7 +173,7 @@ todo_include_todos = False
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = 'default'
+html_theme = 'sphinx_rtd_theme'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -122,6 +182,7 @@ html_theme = 'default'
 
 # Add any paths that contain custom themes here, relative to this directory.
 #html_theme_path = []
+html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
