@@ -65,7 +65,7 @@ class DokuWiki(object):
     **ServerProxy** parameters.
 
     The exception `DokuWikiError` is raised if the authentification
-    fails but others exceptions (like ``gaierror` for invalid domain,
+    fails but others exceptions (like ``gaierror`` for invalid domain,
     ``ProtocolError`` for an invalid wiki, ...) are not catched.
 
     .. code::
