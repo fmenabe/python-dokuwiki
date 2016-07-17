@@ -326,8 +326,8 @@ class _Medias(object):
         return self._dokuwiki.send('wiki.getRecentMediaChanges', timestamp)
 
     def get(self, media, dirpath=None, filename=None, overwrite=False):
-        """Returns the binary datas of *media* or save it to a file. If *dirpath*
-        is not set the binary datas are returned, otherwise the datas are saved
+        """Returns the binary data of *media* or save it to a file. If *dirpath*
+        is not set the binary data is returned, otherwise the data is saved
         to a file. By default, the filename is the name of the media but it can
         be changed with *filename* parameter. *overwrite* parameter allow to
         overwrite the file if it already exists locally.
@@ -406,10 +406,10 @@ class Dataentry(object):
         return dataentry
 
     @staticmethod
-    def gen(name, datas):
-        """Generate dataentry *name* from *datas*."""
+    def gen(name, data):
+        """Generate dataentry *name* from *data*."""
         return '---- dataentry %s ----\n%s\n----' % (name, '\n'.join(
-            '%s:%s' % (attr, value) for attr, value in datas.items()))
+            '%s:%s' % (attr, value) for attr, value in data.items()))
 
     @staticmethod
     def ignore(content):
