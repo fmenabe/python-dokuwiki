@@ -17,6 +17,7 @@ Otherwise sources are in `github <https://github.com/fmenabe/python-dokuwiki>`_
 
 import re
 import sys
+import base64
 import weakref
 from xml.parsers.expat import ExpatError
 if sys.version_info[0] == 3:
@@ -27,7 +28,6 @@ else:
     from urllib import urlencode
 
 from datetime import datetime, timedelta
-from base64 import b64decode, b64encode
 
 ERR = 'XML or text declaration not at start of entity: line 2, column 0'
 
@@ -325,7 +325,7 @@ class _Medias(object):
         """
         return self._dokuwiki.send('wiki.getRecentMediaChanges', timestamp)
 
-    def get(self, media, dirpath=None, filename=None, overwrite=False):
+    def get(self, media, dirpath=None, filename=None, overwrite=False, b64decode=False):
         """Returns the binary data of *media* or save it to a file. If *dirpath*
         is not set the binary data is returned, otherwise the data is saved
         to a file. By default, the filename is the name of the media but it can
@@ -334,7 +334,7 @@ class _Medias(object):
         """
         import os
         data = self._dokuwiki.send('wiki.getAttachment', media)
-        data = b64decode(data)
+        data = base64.b64decode(data) if b64decode else data.data
         if dirpath is None:
             return data
 
@@ -361,12 +361,12 @@ class _Medias(object):
             self._dokuwiki.send('wiki.putAttachment', media,
                                 Binary(fhandler.read()), ow=overwrite)
 
-    def set(self, media, _bytes, overwrite=True):
+    def set(self, media, _bytes, overwrite=True, b64encode=False):
         """Set *media* from *_bytes*. *overwrite* parameter specify if the media
         must be overwrite if it exists remotely.
         """
-        self._dokuwiki.send('wiki.putAttachment', media,
-                            b64encode(_bytes), ow=overwrite)
+        data = base64.b64encode(_bytes) if b64encode else Binary(_bytes)
+        self._dokuwiki.send('wiki.putAttachment', media, data, ow=overwrite)
 
     def delete(self, media):
         """Delete *media*."""
