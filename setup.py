@@ -3,7 +3,7 @@
 from distutils.core import setup
 setup(
     name = 'dokuwiki',
-    version = '0.4.0',
+    version = '0.5.0',
     author = 'François Ménabé',
     author_email = 'francois.menabe@gmail.com',
     url = 'http://python-dokuwiki.readthedocs.org/en/latest/',

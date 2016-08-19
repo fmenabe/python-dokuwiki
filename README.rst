@@ -30,6 +30,10 @@ API is described `here <http://python-dokuwiki.readthedocs.org/en/latest/>`_.
 
 Release notes
 -------------
+0.5 (2016-08-19)
+~~~~~~~~~~~~~~~~
+    * Correct a bug when retrieving/uploading medias (`a1f56b6 <https://github.com/fmenabe/python-dokuwiki/commit/a1f56b6>`_).
+
 0.4 (2016-02-07)
 ~~~~~~~~~~~~~~~~
     * Allow media to be get/set as bytes (`44c6dcf <https://github.com/fmenabe/python-dokuwiki/commit/44c6dcf>`_, `1621291 <https://github.com/fmenabe/python-dokuwiki/commit/1621291>`_)
