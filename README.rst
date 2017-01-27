@@ -17,9 +17,9 @@ python-dokuwiki
            :target: https://landscape.io/github/fmenabe/python-dokuwiki/master
            :alt: Code Health
 
-.. image:: https://img.shields.io/pypi/dm/dokuwiki.svg
-           :target: https://pypi.python.org/pypi/dokuwiki
-           :alt: Downloads
+.. .. image:: https://img.shields.io/pypi/dm/dokuwiki.svg
+              :target: https://pypi.python.org/pypi/dokuwiki
+              :alt: Downloads
 
 
 This python module aims to manage `DokuWiki <https://www.dokuwiki.org/dokuwiki>`_

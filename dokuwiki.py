@@ -31,6 +31,8 @@ from datetime import datetime, timedelta
 
 ERR = 'XML or text declaration not at start of entity: line 2, column 0'
 
+_URL_RE = re.compile(r'(?P<proto>https?)://(?P<host>[^/]*)(?P<uri>/.*)?')
+
 def date(date):
     """DokuWiki returns dates of `xmlrpclib`/`xmlrpc.client` ``DateTime``
     type and the format changes between DokuWiki versions ... This function
@@ -79,8 +81,12 @@ class DokuWiki(object):
     def __init__(self, url, user, password, **kwargs):
         """Initialize the object by connecting to the XMLRPC server."""
         # Initialize XMLRPC client.
-        url_params = urlencode({'u': user, 'p': password})
-        url = '%s/lib/exe/xmlrpc.php?%s' % (url, url_params)
+        try:
+            params = _URL_RE.search(url).groupdict()
+            url = '%s://%s:%s@%s%s/lib/exe/xmlrpc.php' % (
+                params['proto'], user, password, params['host'], params['uri'] or '')
+        except AttributeError:
+            raise DokuwikiError("invalid url '%s'" %  url)
         self.proxy = ServerProxy(url, **kwargs)
 
         # Force login to check the connection.
