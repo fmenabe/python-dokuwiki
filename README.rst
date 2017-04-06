@@ -28,8 +28,13 @@ This module is compatible with python2.7 and python3+.
 
 API is described `here <http://python-dokuwiki.readthedocs.org/en/latest/>`_.
 
+
 Release notes
 -------------
+1.0 (2017-04-06)
+~~~~~~~~~~~~~~~~
+    * Prevent username and password to be passed as GET parameters (`e4cbb5d <https://github.com/fmenabe/python-dokuwiki/commit/e4cbb5d>`_).
+
 0.5 (2016-08-19)
 ~~~~~~~~~~~~~~~~
     * Correct a bug when retrieving/uploading medias (`a1f56b6 <https://github.com/fmenabe/python-dokuwiki/commit/a1f56b6>`_).
