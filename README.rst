@@ -31,6 +31,10 @@ API is described `here <http://python-dokuwiki.readthedocs.org/en/latest/>`_.
 
 Release notes
 -------------
+1.0.1 (2017-04-06)
+~~~~~~~~~~~~~~~~~~
+    * Correct a typo with an exception call.
+
 1.0 (2017-04-06)
 ~~~~~~~~~~~~~~~~
     * Prevent username and password to be passed as GET parameters (`e4cbb5d <https://github.com/fmenabe/python-dokuwiki/commit/e4cbb5d>`_).
