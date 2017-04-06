@@ -86,7 +86,7 @@ class DokuWiki(object):
             url = '%s://%s:%s@%s%s/lib/exe/xmlrpc.php' % (
                 params['proto'], user, password, params['host'], params['uri'] or '')
         except AttributeError:
-            raise DokuwikiError("invalid url '%s'" %  url)
+            raise DokuWikiError("invalid url '%s'" %  url)
         self.proxy = ServerProxy(url, **kwargs)
 
         # Force login to check the connection.
