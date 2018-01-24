@@ -42,6 +42,12 @@ Medias
     :members: changes, list, get, set, info, add, delete
     :member-order: bysource
 
+Structs
+~~~~~~~
+.. autoclass:: _Structs
+    :members: get_data, save_data, get_schema, get_aggregation_data
+    :member-order: bysource
+
 Dataentries
 ~~~~~~~~~~~
 .. autoclass:: Dataentry

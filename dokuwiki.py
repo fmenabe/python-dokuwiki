@@ -96,6 +96,7 @@ class DokuWiki(object):
         # Set "namespaces" for pages and medias functions.
         self.pages = _Pages(weakref.ref(self)())
         self.medias = _Medias(weakref.ref(self)())
+        self.structs = _Structs(weakref.ref(self)())
 
     def send(self, command, *args, **kwargs):
         """Generic method for executing an XML-RPC *command*. *args* and
@@ -377,6 +378,29 @@ class _Medias(object):
     def delete(self, media):
         """Delete *media*."""
         return self._dokuwiki.send('wiki.deleteAttachment', media)
+
+
+class _Structs(object):
+    def __init__(self, dokuwiki):
+        """Get the structured data of a given page."""
+        self._dokuwiki = dokuwiki
+
+    def get_data(self, page, schema, timestamp=0):
+        """Get the structured data of a given page."""
+        return self._dokuwiki.send('plugin.struct.getData', page, schema, timestamp)
+
+    def save_data(self, page, data, summary=''):
+        """Saves data for a given page (creates a new revision)."""
+        return self._dokuwiki.send('plugin.struct.saveData', page, data, summary)
+
+    def get_schema(self, name=''):
+        """Get info about existing schemas columns."""
+        return self._dokuwiki.send('plugin.struct.getSchema', name)
+
+    def get_aggregation_data(self, schemas, columns, data_filter=[], sort=''):
+        """Get the data that would be shown in an aggregation."""
+        return self._dokuwiki.send(
+            'plugin.struct.getAggregationData', schemas, columns, data_filter, sort)
 
 
 class Dataentry(object):
