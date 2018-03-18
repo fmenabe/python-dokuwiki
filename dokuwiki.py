@@ -120,7 +120,7 @@ class DokuWiki(object):
     .. code::
 
         try:
-            wiki = dokuwiki.DokuWiki('URL', 'USER', 'PASSWORD', basicAuth=False)
+            wiki = dokuwiki.DokuWiki('URL', 'USER', 'PASSWORD', cookieAuth=False)
         except (DokuWikiError, Exception) as err:
             print('unable to connect: %s' % err)
     """
