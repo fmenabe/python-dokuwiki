@@ -123,6 +123,11 @@ class DokuWiki(object):
             wiki = dokuwiki.DokuWiki('URL', 'USER', 'PASSWORD', cookieAuth=False)
         except (DokuWikiError, Exception) as err:
             print('unable to connect: %s' % err)
+
+    .. note::
+
+        The URL format is: `PROTO://FQDN[/PATH]` (*https://www.example.com/dokuwiki*
+        for example).
     """
 
     def __init__(self, url, user, password, cookieAuth=False, **kwargs):
