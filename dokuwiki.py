@@ -21,10 +21,10 @@ import base64
 import weakref
 from xml.parsers.expat import ExpatError
 if sys.version_info[0] == 3:
-    from xmlrpc.client import ServerProxy, Binary, Fault
+    from xmlrpc.client import ServerProxy, Binary, Fault, Transport
     from urllib.parse import urlencode
 else:
-    from xmlrpclib import ServerProxy, Binary, Fault
+    from xmlrpclib import ServerProxy, Binary, Fault, Transport
     from urllib import urlencode
 
 from datetime import datetime, timedelta
@@ -59,6 +59,53 @@ class DokuWikiError(Exception):
     """Exception raised by this module when there is an error."""
     pass
 
+class CookiesTransport(Transport):
+    """A Python3 xmlrpc.client.Transport subclass that retains cookies."""
+    def __init__(self):
+        Transport.__init__(self)
+        self._cookies = dict()
+
+    def send_headers(self, connection, headers):
+        if self._cookies:
+            cookies = map(lambda x: x[0] + '=' + x[1], self._cookies.items())
+            connection.putheader("Cookie", "; ".join(cookies))
+        Transport.send_headers(self, connection, headers)
+
+    def parse_response(self, response):
+        """parse and store cookie"""
+        try:
+            for header in response.msg.get_all("Set-Cookie"):
+                cookie = header.split(";", 1)[0]
+                cookieKey, cookieValue = cookie.split("=", 1)
+                self._cookies[cookieKey] = cookieValue
+        finally:
+            return Transport.parse_response(self, response)
+
+class CookiesTransport2(Transport):
+    """A Python2 xmlrpclib.Transport subclass that retains cookies."""
+    def __init__(self):
+        Transport.__init__(self)
+        self._cookies = dict()
+
+    def send_request(self, connection, handler, request_body):
+        Transport.send_request(self, connection, handler, request_body)
+        # set cookie below handler
+        if self._cookies:
+            cookies = map(lambda x: x[0] + '=' + x[1], self._cookies.items())
+            connection.putheader("Cookie", "; ".join(cookies))
+
+    def parse_response(self, response):
+        """parse and store cookie"""
+        try:
+            for header in response.getheader("set-cookie").split(", "):
+                # filter 'expire' information
+                if not header.startswith("D"):
+                    continue
+                cookie = header.split(";", 1)[0]
+                cookieKey, cookieValue = cookie.split("=", 1)
+                self._cookies[cookieKey] = cookieValue
+        finally:
+            return Transport.parse_response(self, response)
 
 class DokuWiki(object):
     """Initialize a connection to a DokuWiki wiki. *url*, *user* and
@@ -73,21 +120,32 @@ class DokuWiki(object):
     .. code::
 
         try:
-            wiki = dokuwiki.DokuWiki('URL', 'USER', 'PASSWORD')
+            wiki = dokuwiki.DokuWiki('URL', 'USER', 'PASSWORD', cookieAuth=False)
         except (DokuWikiError, Exception) as err:
             print('unable to connect: %s' % err)
     """
 
-    def __init__(self, url, user, password, **kwargs):
+    def __init__(self, url, user, password, cookieAuth=False, **kwargs):
         """Initialize the object by connecting to the XMLRPC server."""
         # Initialize XMLRPC client.
         try:
             params = _URL_RE.search(url).groupdict()
-            url = '%s://%s:%s@%s%s/lib/exe/xmlrpc.php' % (
-                params['proto'], user, password, params['host'], params['uri'] or '')
+            if cookieAuth == False:
+                url = '%s://%s:%s@%s%s/lib/exe/xmlrpc.php' % (
+                    params['proto'], user, password, params['host'], params['uri'] or '')
+            else:
+                url = '%s://%s%s/lib/exe/xmlrpc.php' % (
+                    params['proto'], params['host'], params['uri'] or '')
         except AttributeError:
             raise DokuWikiError("invalid url '%s'" %  url)
-        self.proxy = ServerProxy(url, **kwargs)
+
+        if cookieAuth == False:
+            self.proxy = ServerProxy(url, **kwargs)
+        else:
+            if sys.version_info[0] == 3:
+                self.proxy = ServerProxy(url, CookiesTransport(), **kwargs)
+            else:
+                self.proxy = ServerProxy(url, CookiesTransport2(), **kwargs)
 
         # Force login to check the connection.
         if not self.login(user, password):
