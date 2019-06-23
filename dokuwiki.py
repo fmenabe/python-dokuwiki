@@ -61,6 +61,7 @@ class DokuWikiError(Exception):
     """Exception raised by this module when there is an error."""
     pass
 
+
 def CookiesTransport(proto='https'):
     """Generate transport class when using cookie based authentication."""
     _TransportClass_ = Transport if proto == 'http' else SafeTransport
@@ -116,28 +117,34 @@ def CookiesTransport(proto='https'):
     return CookiesTransport2() if PY_VERSION == 2 else CookiesTransport()
 
 class DokuWiki(object):
-    """Initialize a connection to a DokuWiki wiki. *url*, *user* and
-    *password* are respectively the URL, the login and the password for
-    connecting to the wiki. *kwargs* are `xmlrpclib`/`xmlrpc.client`
+    """Initialize a connection to a DokuWiki wiki. ``url``, ``user`` and
+    ``password`` are respectively the URL, the login and the password for
+    connecting to the wiki. ``kwargs`` are `xmlrpclib`/`xmlrpc.client`
     **ServerProxy** parameters.
 
-    The exception `DokuWikiError` is raised if the authentification
-    fails but others exceptions (like ``gaierror`` for invalid domain,
-    ``ProtocolError`` for an invalid wiki, ...) are not catched.
+    The exception `DokuWikiError` is raised if the authentication
+    fails but others exceptions (like `socket.gaierror` for invalid domain,
+    `xmlrpc.client.ProtocolError` for an invalid wiki, ...) are not catched.
 
     .. code::
 
         try:
-            wiki = dokuwiki.DokuWiki('URL', 'USER', 'PASSWORD', cookieAuth=False)
+            wiki = dokuwiki.DokuWiki('URL', 'USER', 'PASSWORD')
         except (DokuWikiError, Exception) as err:
             print('unable to connect: %s' % err)
 
     .. note::
 
-        The URL format is: `PROTO://FQDN[/PATH]` (*https://www.example.com/dokuwiki*
+        The URL format is: ``PROTO://FQDN[/PATH]`` (*https://www.example.com/dokuwiki*
         for example).
-    """
 
+    To use cookie based authentication (use HTTP cookies instead of passing login
+    and password in the URI), set ``cookieAuth`` parameter to *True*:
+
+    .. code::
+
+        wiki = dokuwiki.DokuWiki('URL', 'USER', 'PASSWORD', cookieAuth=True)
+    """
     def __init__(self, url, user, password, **kwargs):
         """Initialize the object by connecting to the XMLRPC server."""
         # Parse input URL
@@ -188,6 +195,7 @@ class DokuWiki(object):
         except ExpatError as err:
             if str(err) != ERR:
                 raise DokuWikiError(err)
+
     @property
     def version(self):
         """Property that returns the DokuWiki version of the remote Wiki."""
