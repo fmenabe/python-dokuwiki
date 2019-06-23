@@ -20,11 +20,13 @@ import sys
 import base64
 import weakref
 from xml.parsers.expat import ExpatError
-if sys.version_info[0] == 3:
-    from xmlrpc.client import ServerProxy, Binary, Fault, Transport
+
+PY_VERSION = sys.version_info[0]
+if PY_VERSION == 3:
+    from xmlrpc.client import ServerProxy, Binary, Fault, Transport, SafeTransport
     from urllib.parse import urlencode
 else:
-    from xmlrpclib import ServerProxy, Binary, Fault, Transport
+    from xmlrpclib import ServerProxy, Binary, Fault, Transport, SafeTransport
     from urllib import urlencode
 
 from datetime import datetime, timedelta
@@ -59,53 +61,59 @@ class DokuWikiError(Exception):
     """Exception raised by this module when there is an error."""
     pass
 
-class CookiesTransport(Transport):
-    """A Python3 xmlrpc.client.Transport subclass that retains cookies."""
-    def __init__(self):
-        Transport.__init__(self)
-        self._cookies = dict()
+def CookiesTransport(proto='https'):
+    """Generate transport class when using cookie based authentication."""
+    _TransportClass_ = Transport if proto == 'http' else SafeTransport
 
-    def send_headers(self, connection, headers):
-        if self._cookies:
-            cookies = map(lambda x: x[0] + '=' + x[1], self._cookies.items())
-            connection.putheader("Cookie", "; ".join(cookies))
-        Transport.send_headers(self, connection, headers)
+    class CookiesTransport(_TransportClass_):
+        """A Python3 xmlrpc.client.Transport subclass that retains cookies."""
+        def __init__(self):
+            _TransportClass_.__init__(self)
+            self._cookies = dict()
 
-    def parse_response(self, response):
-        """parse and store cookie"""
-        try:
-            for header in response.msg.get_all("Set-Cookie"):
-                cookie = header.split(";", 1)[0]
-                cookieKey, cookieValue = cookie.split("=", 1)
-                self._cookies[cookieKey] = cookieValue
-        finally:
-            return Transport.parse_response(self, response)
+        def send_headers(self, connection, headers):
+            if self._cookies:
+                cookies = map(lambda x: x[0] + '=' + x[1], self._cookies.items())
+                connection.putheader('Cookie', '; '.join(cookies))
+            _TransportClass_.send_headers(self, connection, headers)
 
-class CookiesTransport2(Transport):
-    """A Python2 xmlrpclib.Transport subclass that retains cookies."""
-    def __init__(self):
-        Transport.__init__(self)
-        self._cookies = dict()
+        def parse_response(self, response):
+            """parse and store cookie"""
+            try:
+                for header in response.msg.get_all("Set-Cookie"):
+                    cookie = header.split(";", 1)[0]
+                    cookieKey, cookieValue = cookie.split("=", 1)
+                    self._cookies[cookieKey] = cookieValue
+            finally:
+                return _TransportClass_.parse_response(self, response)
 
-    def send_request(self, connection, handler, request_body):
-        Transport.send_request(self, connection, handler, request_body)
-        # set cookie below handler
-        if self._cookies:
-            cookies = map(lambda x: x[0] + '=' + x[1], self._cookies.items())
-            connection.putheader("Cookie", "; ".join(cookies))
+    class CookiesTransport2(_TransportClass_):
+        """A Python2 xmlrpclib.Transport subclass that retains cookies."""
+        def __init__(self):
+            _TransportClass_.__init__(self)
+            self._cookies = dict()
 
-    def parse_response(self, response):
-        """parse and store cookie"""
-        try:
-            for header in response.getheader("set-cookie").split(", "):
-                # filter 'expire' information
-                if not header.startswith("D"):
-                    continue
-                cookie = header.split(";", 1)[0]
-                cookieKey, cookieValue = cookie.split("=", 1)
-                self._cookies[cookieKey] = cookieValue
-        finally:
-            return Transport.parse_response(self, response)
+        def send_request(self, connection, handler, request_body):
+            _TransportClass_.send_request(self, connection, handler, request_body)
+            # set cookie below handler
+            if self._cookies:
+                cookies = map(lambda x: x[0] + '=' + x[1], self._cookies.items())
+                connection.putheader("Cookie", "; ".join(cookies))
+
+        def parse_response(self, response):
+            """parse and store cookie"""
+            try:
+                for header in response.getheader("set-cookie").split(", "):
+                    # filter 'expire' information
+                    if not header.startswith("D"):
+                        continue
+                    cookie = header.split(";", 1)[0]
+                    cookieKey, cookieValue = cookie.split("=", 1)
+                    self._cookies[cookieKey] = cookieValue
+            finally:
+                return _TransportClass_.parse_response(self, response)
+
+    return CookiesTransport2() if PY_VERSION == 2 else CookiesTransport()
 
 class DokuWiki(object):
     """Initialize a connection to a DokuWiki wiki. *url*, *user* and
@@ -147,10 +155,7 @@ class DokuWiki(object):
         if cookieAuth == False:
             self.proxy = ServerProxy(url, **kwargs)
         else:
-            if sys.version_info[0] == 3:
-                self.proxy = ServerProxy(url, CookiesTransport(), **kwargs)
-            else:
-                self.proxy = ServerProxy(url, CookiesTransport2(), **kwargs)
+            self.proxy = ServerProxy(url, CookiesTransport(params['proto']), **kwargs)
 
         # Force login to check the connection.
         if not self.login(user, password):
