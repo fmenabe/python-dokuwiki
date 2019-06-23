@@ -138,26 +138,26 @@ class DokuWiki(object):
         for example).
     """
 
-    def __init__(self, url, user, password, cookieAuth=False, **kwargs):
+    def __init__(self, url, user, password, **kwargs):
         """Initialize the object by connecting to the XMLRPC server."""
-        # Initialize XMLRPC client.
+        # Parse input URL
         try:
             params = _URL_RE.search(url).groupdict()
-            if cookieAuth == False:
-                url = '%s://%s:%s@%s%s/lib/exe/xmlrpc.php' % (
-                    params['proto'], user, password, params['host'], params['uri'] or '')
-            else:
-                url = '%s://%s%s/lib/exe/xmlrpc.php' % (
-                    params['proto'], params['host'], params['uri'] or '')
         except AttributeError:
             raise DokuWikiError("invalid url '%s'" %  url)
 
-        if cookieAuth == False:
-            self.proxy = ServerProxy(url, **kwargs)
-        else:
-            self.proxy = ServerProxy(url, CookiesTransport(params['proto']), **kwargs)
+        # Set auth string or transport for cookie based authentication.
+        auth = '{:s}:{:s}@'.format(user, password)
+        if kwargs.pop('cookieAuth', False):
+            auth = ''
+            kwargs['transport'] = CookiesTransport(params['proto'])
 
-        # Force login to check the connection.
+        xmlrpc_url = '%s://%s%s%s/lib/exe/xmlrpc.php' % (
+            params['proto'], auth, params['host'], params['uri'] or '')
+        self.proxy = ServerProxy(xmlrpc_url, **kwargs)
+
+        # Force login (required for cookie based authentication and allows
+        # to check the connection).
         if not self.login(user, password):
             raise DokuWikiError('invalid login or password!')
 
