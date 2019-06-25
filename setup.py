@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 
-from distutils.core import setup
-setup(
+import setuptools
+
+setuptools.setup(
     name = 'dokuwiki',
-    version = '1.1.0',
+    version = '1.2.0',
     author = 'François Ménabé',
     author_email = 'francois.menabe@gmail.com',
     url = 'http://python-dokuwiki.readthedocs.org/en/latest/',

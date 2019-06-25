@@ -31,6 +31,10 @@ API is described `here <http://python-dokuwiki.readthedocs.org/en/latest/>`_.
 
 Release notes
 -------------
+1.2.0 (2019-06-25)
+~~~~~~~~~~~~~~~~~~
+    * Support of HTTPS for cookie based authentication.
+
 1.1.0 (2018-03-22)
 ~~~~~~~~~~~~~~~~~~
     * Support authentication by cookie (thanks to *luminisward*).
