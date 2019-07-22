@@ -23,10 +23,10 @@ from xml.parsers.expat import ExpatError
 
 PY_VERSION = sys.version_info[0]
 if PY_VERSION == 3:
-    from xmlrpc.client import ServerProxy, Binary, Fault, Transport, SafeTransport
+    from xmlrpc.client import ServerProxy, Binary, Fault, Transport, SafeTransport, ProtocolError
     from urllib.parse import urlencode
 else:
-    from xmlrpclib import ServerProxy, Binary, Fault, Transport, SafeTransport
+    from xmlrpclib import ServerProxy, Binary, Fault, Transport, SafeTransport, ProtocolError
     from urllib import urlencode
 
 from datetime import datetime, timedelta
@@ -155,7 +155,8 @@ class DokuWiki(object):
 
         # Set auth string or transport for cookie based authentication.
         auth = '{:s}:{:s}@'.format(user, password)
-        if kwargs.pop('cookieAuth', False):
+        cookie_auth = kwargs.pop('cookieAuth', False)
+        if cookie_auth:
             auth = ''
             kwargs['transport'] = CookiesTransport(params['proto'])
 
@@ -163,10 +164,17 @@ class DokuWiki(object):
             params['proto'], auth, params['host'], params['uri'] or '')
         self.proxy = ServerProxy(xmlrpc_url, **kwargs)
 
-        # Force login (required for cookie based authentication and allows
-        # to check the connection).
-        if not self.login(user, password):
+        # Force login for cookie based authentication.
+        if cookie_auth and not self.login(user, password):
             raise DokuWikiError('invalid login or password!')
+
+        # Dummy call to ensure the connection is up.
+        try:
+            self.version
+        except ProtocolError as err:
+            if err.errcode == 401:
+                raise DokuWikiError('invalid login or password!')
+            raise
 
         # Set "namespaces" for pages and medias functions.
         self.pages = _Pages(weakref.ref(self)())
