@@ -31,6 +31,12 @@ API is described `here <http://python-dokuwiki.readthedocs.org/en/latest/>`_.
 
 Release notes
 -------------
+1.2.1 (2019-07-24)
+~~~~~~~~~~~~~~~~~~
+    * Remove `login <https://www.dokuwiki.org/devel:xmlrpc#dokuwikilogin>`_ call
+      in the constructor as it seems to fail on some cases (`98ed799
+      <https://github.com/fmenabe/python-dokuwiki/commit/98ed799>`_).
+
 1.2.0 (2019-06-25)
 ~~~~~~~~~~~~~~~~~~
     * Support of HTTPS for cookie based authentication.

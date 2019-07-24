@@ -4,7 +4,7 @@ import setuptools
 
 setuptools.setup(
     name = 'dokuwiki',
-    version = '1.2.0',
+    version = '1.2.1',
     author = 'François Ménabé',
     author_email = 'francois.menabe@gmail.com',
     url = 'http://python-dokuwiki.readthedocs.org/en/latest/',
@@ -16,7 +16,6 @@ setuptools.setup(
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Intended Audience :: Developers',
