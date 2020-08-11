@@ -469,7 +469,7 @@ class Dataentry(object):
     @staticmethod
     def get(content, keep_order=False):
         """Get dataentry from *content*. *keep_order* indicates whether to
-        return an ordered dictionnay."""
+        return an ordered dictionary."""
         if keep_order:
             from collections import OrderedDict
             dataentry = OrderedDict()
