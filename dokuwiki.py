@@ -385,7 +385,7 @@ class _Structs(object):
         """Get the structured data of a given page."""
         self._dokuwiki = dokuwiki
 
-    def get_data(self, page, schema, timestamp=0):
+    def get_data(self, page, schema='', timestamp=0):
         """Get the structured data of a given page."""
         return self._dokuwiki.send('plugin.struct.getData', page, schema, timestamp)
 
