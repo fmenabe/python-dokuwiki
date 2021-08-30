@@ -473,9 +473,9 @@ class _Structs(object):
         """Get the structured data of a given page."""
         return self._dokuwiki.send('plugin.struct.getData', page, schema, timestamp)
 
-    def save_data(self, page, data, summary=''):
+    def save_data(self, page, data, summary='', minor=False):
         """Saves data for a given page (creates a new revision)."""
-        return self._dokuwiki.send('plugin.struct.saveData', page, data, summary)
+        return self._dokuwiki.send('plugin.struct.saveData', page, data, summary, minor)
 
     def get_schema(self, name=''):
         """Get info about existing schemas columns."""
