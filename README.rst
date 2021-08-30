@@ -31,6 +31,11 @@ API is described `here <http://python-dokuwiki.readthedocs.org/en/latest/>`_.
 
 Release notes
 -------------
+1.3.1 (2021-08-30)
+~~~~~~~~~~~~~~~~~~
+    * Set default empty value for `summary` to `structs.get_data()`
+    * Add `minor` parameter to `structs.get_data()`
+
 1.2.1 (2019-07-24)
 ~~~~~~~~~~~~~~~~~~
     * Remove `login <https://www.dokuwiki.org/devel:xmlrpc#dokuwikilogin>`_ call
