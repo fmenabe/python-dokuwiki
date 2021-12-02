@@ -24,10 +24,10 @@ from xml.parsers.expat import ExpatError
 PY_VERSION = sys.version_info[0]
 if PY_VERSION == 3:
     from xmlrpc.client import ServerProxy, Binary, Fault, Transport, SafeTransport, ProtocolError
-    from urllib.parse import urlencode
+    from urllib.parse import quote
 else:
     from xmlrpclib import ServerProxy, Binary, Fault, Transport, SafeTransport, ProtocolError
-    from urllib import urlencode
+    from urllib import quote
 
 from datetime import datetime, timedelta
 
@@ -154,7 +154,7 @@ class DokuWiki(object):
             raise DokuWikiError("invalid url '%s'" %  url)
 
         # Set auth string or transport for cookie based authentication.
-        auth = '{:s}:{:s}@'.format(user, password)
+        auth = '{:s}:{:s}@'.format(user, quote(password))
         cookie_auth = kwargs.pop('cookieAuth', False)
         if cookie_auth:
             auth = ''
