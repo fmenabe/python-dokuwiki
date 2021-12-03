@@ -4,7 +4,7 @@ import setuptools
 
 setuptools.setup(
     name = 'dokuwiki',
-    version = '1.3.1',
+    version = '1.3.2',
     author = 'François Ménabé',
     author_email = 'francois.menabe@gmail.com',
     url = 'http://python-dokuwiki.readthedocs.org/en/latest/',

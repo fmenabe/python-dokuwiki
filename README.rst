@@ -31,6 +31,12 @@ API is described `here <http://python-dokuwiki.readthedocs.org/en/latest/>`_.
 
 Release notes
 -------------
+
+1.3.2 (2021-12-03)
+~~~~~~~~~~~~~~~~~~
+    * Correct a bug when using some special characters in the password (`c891eb8
+      <https://github.com/fmenabe/python-dokuwiki/commit/c891eb8>`_)
+
 1.3.1 (2021-08-30)
 ~~~~~~~~~~~~~~~~~~
     * Set default empty value for `summary` to `structs.get_data()`
