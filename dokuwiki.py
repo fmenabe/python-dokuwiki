@@ -154,7 +154,7 @@ class DokuWiki(object):
             raise DokuWikiError("invalid url '%s'" %  url)
 
         # Set auth string or transport for cookie based authentication.
-        auth = '{:s}:{:s}@'.format(user, quote(password))
+        auth = '{:s}:{:s}@'.format(user, quote(password, safe = ''))
         cookie_auth = kwargs.pop('cookieAuth', False)
         if cookie_auth:
             auth = ''
