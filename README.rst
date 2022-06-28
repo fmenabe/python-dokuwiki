@@ -31,6 +31,10 @@ API is described `here <http://python-dokuwiki.readthedocs.org/en/latest/>`_.
 
 Release notes
 -------------
+1.3.3 (2022-06-28)
+~~~~~~~~~~~~~~~~~~
+    * Allow slash character in passwords (`#26
+      <https://github.com/fmenabe/python-dokuwiki/pull/26>`__)
 
 1.3.2 (2021-12-03)
 ~~~~~~~~~~~~~~~~~~
