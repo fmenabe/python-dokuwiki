@@ -3,7 +3,7 @@
 """This python module aims to manage
 `DokuWiki <https://www.dokuwiki.org/dokuwiki>`_ wikis by using the
 provided `XML-RPC API <https://www.dokuwiki.org/devel:xmlrpc>`_.  It is
-compatible with python2.7 and python3+.
+compatible with python3+.
 
 Installation
 ------------
@@ -15,28 +15,20 @@ the ``pip`` command to install it::
 Otherwise sources are in `github <https://github.com/fmenabe/python-dokuwiki>`_
 """
 
-import re
-import sys
 import base64
+import re
 import weakref
-from xml.parsers.expat import ExpatError
-
-PY_VERSION = sys.version_info[0]
-if PY_VERSION == 3:
-    from xmlrpc.client import ServerProxy, Binary, Fault, Transport, SafeTransport, ProtocolError
-    from urllib.parse import quote
-else:
-    from xmlrpclib import ServerProxy, Binary, Fault, Transport, SafeTransport, ProtocolError
-    from urllib import quote
-
 from datetime import datetime, timedelta
+from urllib.parse import quote
+from xml.parsers.expat import ExpatError
+from xmlrpc.client import ServerProxy, Binary, Fault, Transport, SafeTransport, ProtocolError
 
 ERR = 'XML or text declaration not at start of entity: line 2, column 0'
 
 _URL_RE = re.compile(r'(?P<proto>https?)://(?P<host>[^/]*)(?P<uri>/.*)?')
 
 def date(date):
-    """DokuWiki returns dates of `xmlrpclib`/`xmlrpc.client` ``DateTime``
+    """DokuWiki returns dates of `xmlrpc.client` ``DateTime``
     type and the format changes between DokuWiki versions ... This function
     convert *date* to a `datetime` object.
     """
@@ -49,10 +41,7 @@ def utc2local(date):
     """DokuWiki returns date with a +0000 timezone. This function convert *date*
     to the local time.
     """
-    date_offset = (datetime.now() - datetime.utcnow())
-    # Python < 2.7 don't have the 'total_seconds' method so calculate it by hand!
-    date_offset = (date_offset.microseconds +
-                   (date_offset.seconds + date_offset.days * 24 * 3600) * 1e6) / 1e6
+    date_offset = (datetime.now() - datetime.utcnow()).total_seconds()
     date_offset = int(round(date_offset / 60 / 60))
     return date + timedelta(hours=date_offset)
 
@@ -88,38 +77,13 @@ def CookiesTransport(proto='https'):
             finally:
                 return _TransportClass_.parse_response(self, response)
 
-    class CookiesTransport2(_TransportClass_):
-        """A Python2 xmlrpclib.Transport subclass that retains cookies."""
-        def __init__(self):
-            _TransportClass_.__init__(self)
-            self._cookies = dict()
+    return CookiesTransport()
 
-        def send_request(self, connection, handler, request_body):
-            _TransportClass_.send_request(self, connection, handler, request_body)
-            # set cookie below handler
-            if self._cookies:
-                cookies = map(lambda x: x[0] + '=' + x[1], self._cookies.items())
-                connection.putheader("Cookie", "; ".join(cookies))
 
-        def parse_response(self, response):
-            """parse and store cookie"""
-            try:
-                for header in response.getheader("set-cookie").split(", "):
-                    # filter 'expire' information
-                    if not header.startswith("D"):
-                        continue
-                    cookie = header.split(";", 1)[0]
-                    cookieKey, cookieValue = cookie.split("=", 1)
-                    self._cookies[cookieKey] = cookieValue
-            finally:
-                return _TransportClass_.parse_response(self, response)
-
-    return CookiesTransport2() if PY_VERSION == 2 else CookiesTransport()
-
-class DokuWiki(object):
+class DokuWiki:
     """Initialize a connection to a DokuWiki wiki. ``url``, ``user`` and
     ``password`` are respectively the URL, the login and the password for
-    connecting to the wiki. ``kwargs`` are `xmlrpclib`/`xmlrpc.client`
+    connecting to the wiki. ``kwargs`` are `xmlrpc.client`
     **ServerProxy** parameters.
 
     The exception `DokuWikiError` is raised if the authentication
@@ -256,7 +220,7 @@ class DokuWiki(object):
         return self.send('plugin.acl.delAcl', scope, user)
 
 
-class _Pages(object):
+class _Pages:
     """This object regroup methods for managing pages of a DokuWiki. This object
     is accessible from the ``pages`` property of an `DokuWiki` instance::
 
@@ -383,7 +347,7 @@ class _Pages(object):
         return self._dokuwiki.send('wiki.getBackLinks', page)
 
 
-class _Medias(object):
+class _Medias:
     """This object regroup methods for managing medias of a DokuWiki. This
     object is accessible from the ``medias`` property of an `DokuWiki`
     instance::
@@ -464,7 +428,7 @@ class _Medias(object):
         return self._dokuwiki.send('wiki.deleteAttachment', media)
 
 
-class _Structs(object):
+class _Structs:
     def __init__(self, dokuwiki):
         """Get the structured data of a given page."""
         self._dokuwiki = dokuwiki
@@ -487,7 +451,7 @@ class _Structs(object):
             'plugin.struct.getAggregationData', schemas, columns, data_filter, sort)
 
 
-class Dataentry(object):
+class Dataentry:
     """Object that manage `data entries <https://www.dokuwiki.org/plugin:data>`_."""
 
     @staticmethod
