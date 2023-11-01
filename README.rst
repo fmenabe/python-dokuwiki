@@ -24,7 +24,7 @@ python-dokuwiki
 
 This python module aims to manage `DokuWiki <https://www.dokuwiki.org/dokuwiki>`_
 wikis by using the provided `XML-RPC API <https://www.dokuwiki.org/devel:xmlrpc>`_.
-This module is compatible with python2.7 and python3+.
+This module is compatible with python3+.
 
 API is described `here <http://python-dokuwiki.readthedocs.org/en/latest/>`_.
 
