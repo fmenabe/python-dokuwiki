@@ -503,7 +503,7 @@ class Dataentry:
     def get(content: str, keep_order: bool = False) -> Union[Dict[str, str], t_OrderedDict[str, str]]:
         """Get dataentry from *content*. *keep_order* indicates whether to
         return an ordered dictionary."""
-        dataentry: Union[Dict[str, str], OrderedDict[str, str]]
+        dataentry: Union[Dict[str, str], t_OrderedDict[str, str]]
         if keep_order:
             dataentry = OrderedDict()
         else:
