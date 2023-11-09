@@ -18,26 +18,32 @@ Otherwise sources are in `github <https://github.com/fmenabe/python-dokuwiki>`_
 import base64
 import re
 import weakref
+from collections import OrderedDict
 from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional, Union, TYPE_CHECKING
+from typing import OrderedDict as t_OrderedDict
 from urllib.parse import quote
 from xml.parsers.expat import ExpatError
-from xmlrpc.client import ServerProxy, Binary, Fault, Transport, SafeTransport, ProtocolError
+from xmlrpc.client import ServerProxy, Binary, Fault, Transport, SafeTransport, ProtocolError, DateTime
+
+if TYPE_CHECKING:
+    import http.client
 
 ERR = 'XML or text declaration not at start of entity: line 2, column 0'
 
 _URL_RE = re.compile(r'(?P<proto>https?)://(?P<host>[^/]*)(?P<uri>/.*)?')
 
-def date(date):
+def date(dte: DateTime ) -> datetime:
     """DokuWiki returns dates of `xmlrpc.client` ``DateTime``
     type and the format changes between DokuWiki versions ... This function
     convert *date* to a `datetime` object.
     """
-    date = date.value
+    date = dte.value
     return (datetime.strptime(date[:-5], '%Y-%m-%dT%H:%M:%S')
             if len(date) == 24
             else datetime.strptime(date, '%Y%m%dT%H:%M:%S'))
 
-def utc2local(date):
+def utc2local(date: datetime) -> datetime:
     """DokuWiki returns date with a +0000 timezone. This function convert *date*
     to the local time.
     """
@@ -51,31 +57,40 @@ class DokuWikiError(Exception):
     pass
 
 
-def CookiesTransport(proto='https'):
+def CookiesTransport(proto: str = 'https') -> Transport:
     """Generate transport class when using cookie based authentication."""
     _TransportClass_ = Transport if proto == 'http' else SafeTransport
 
     class CookiesTransport(_TransportClass_):
         """A Python3 xmlrpc.client.Transport subclass that retains cookies."""
-        def __init__(self):
-            _TransportClass_.__init__(self)
-            self._cookies = dict()
+        def __init__(self) -> None:
+            super().__init__(self)
+            self._cookies: Dict[str, str] = dict()
 
-        def send_headers(self, connection, headers):
+        def send_headers(
+            self,
+            connection: http.client.HTTPConnection,
+            headers: Dict[str, str]
+        ) -> None:
             if self._cookies:
                 cookies = map(lambda x: x[0] + '=' + x[1], self._cookies.items())
                 connection.putheader('Cookie', '; '.join(cookies))
-            _TransportClass_.send_headers(self, connection, headers)
+            super().send_headers(self, connection, headers)
 
-        def parse_response(self, response):
+        def parse_response(
+            self,
+            response: http.client.HTTPResponse
+        ) -> Any:
             """parse and store cookie"""
             try:
-                for header in response.msg.get_all("Set-Cookie"):
+                set_cookie = response.msg.get_all("Set-Cookie")
+                assert set_cookie is not None
+                for header in set_cookie:
                     cookie = header.split(";", 1)[0]
                     cookieKey, cookieValue = cookie.split("=", 1)
                     self._cookies[cookieKey] = cookieValue
             finally:
-                return _TransportClass_.parse_response(self, response)
+                return super().parse_response(self, response)
 
     return CookiesTransport()
 
@@ -109,13 +124,13 @@ class DokuWiki:
 
         wiki = dokuwiki.DokuWiki('URL', 'USER', 'PASSWORD', cookieAuth=True)
     """
-    def __init__(self, url, user, password, **kwargs):
+    def __init__(self, url: str, user:str, password: str, **kwargs: Any) -> None:
         """Initialize the object by connecting to the XMLRPC server."""
         # Parse input URL
-        try:
-            params = _URL_RE.search(url).groupdict()
-        except AttributeError:
+        search = _URL_RE.search(url)
+        if search is None:
             raise DokuWikiError("invalid url '%s'" %  url)
+        params = search.groupdict()
 
         # Set auth string or transport for cookie based authentication.
         auth = '{:s}:{:s}@'.format(user, quote(password, safe=''))
@@ -145,20 +160,20 @@ class DokuWiki:
         self.medias = _Medias(weakref.ref(self)())
         self.structs = _Structs(weakref.ref(self)())
 
-    def send(self, command, *args, **kwargs):
+    def send(self, command: str, *args: Any, **kwargs: Any) -> Any:
         """Generic method for executing an XML-RPC *command*. *args* and
         *kwargs* are the arguments and parameters needed by the command.
         """
-        args = list(args)
+        argsl = list(args)
         if kwargs:
-            args.append(kwargs)
+            argsl.append(kwargs)
 
         method = self.proxy
         for elt in command.split('.'):
             method = getattr(method, elt)
 
         try:
-            return method(*args)
+            return method(*argsl)
         except Fault as err:
             if err.faultCode == 121:
                 return {}
@@ -170,41 +185,47 @@ class DokuWiki:
                 raise DokuWikiError(err)
 
     @property
-    def version(self):
+    def version(self) -> str:
         """Property that returns the DokuWiki version of the remote Wiki."""
-        return self.send('dokuwiki.getVersion')
+        version = self.send('dokuwiki.getVersion')
+        assert type(version) is str
+        return version
 
     @property
-    def time(self):
+    def time(self) -> int:
         """Property that returns the current time at the remote wiki server as
         Unix timestamp.
         """
         return self.send('dokuwiki.getTime')
 
     @property
-    def xmlrpc_version(self):
+    def xmlrpc_version(self) -> str:
         """Property that returns the XML RPC interface version of the remote
         Wiki. This is DokuWiki implementation specific and independent of the
         supported standard API version returned by ``wiki.getRPCVersionSupported``.
         """
-        return self.send('dokuwiki.getXMLRPCAPIVersion')
+        version = self.send('dokuwiki.getXMLRPCAPIVersion')
+        assert type(version) is str
+        return version
 
     @property
-    def xmlrpc_supported_version(self):
+    def xmlrpc_supported_version(self) -> str:
         """Property that returns *2* with the supported RPC API version."""
         return self.send('wiki.getRPCVersionSupported')
 
     @property
-    def title(self):
+    def title(self) -> str:
         """Property that returns the title of the wiki."""
-        return self.send('dokuwiki.getTitle')
+        title = self.send('dokuwiki.getTitle')
+        assert type(title) is str
+        return title
 
-    def login(self, user, password):
+    def login(self, user: str, password: str) -> bool:
         """Log to the wiki using *user* and *password* credentials. It returns
         a boolean that indicates if the user succesfully authenticate."""
         return self.send('dokuwiki.login', user, password)
 
-    def add_acl(self, scope, user, permission):
+    def add_acl(self, scope: str, user: str, permission: str) -> bool:
         """Add an `ACL <https://www.dokuwiki.org/acl>`_ rule that restricts
         the page/namespace *scope* to *user* (use *@group* syntax for groups)
         with *permission* level. It returns a boolean that indicate if the rule
@@ -212,7 +233,7 @@ class DokuWiki:
         """
         return self.send('plugin.acl.addAcl', scope, user, permission)
 
-    def del_acl(self, scope, user):
+    def del_acl(self, scope: str, user: str):
         """Delete any ACL matching the given *scope* and *user* (or group if
         *@group* syntax is used). It returns a boolean that indicate if the rule
         was correctly removed.
@@ -228,10 +249,10 @@ class _Pages:
         wiki.pages.list()
     """
 
-    def __init__(self, dokuwiki):
+    def __init__(self, dokuwiki: DokuWiki) -> None:
         self._dokuwiki = dokuwiki
 
-    def list(self, namespace='/', **options):
+    def list(self, namespace: str='/', **options: Dict[str, Any]) -> List[str]:
         """List all pages of the given *namespace*.
 
         Valid *options* are:
@@ -240,9 +261,11 @@ class _Pages:
             * *hash*: (bool) do an md5 sum of content
             * *skipacl*: (bool) list everything regardless of ACL
         """
-        return self._dokuwiki.send('dokuwiki.getPagelist', namespace, options)
+        pages = self._dokuwiki.send('dokuwiki.getPagelist', namespace, options)
+        assert type(pages) is list
+        return pages
 
-    def changes(self, timestamp):
+    def changes(self, timestamp: str) -> List[str]:
         """Returns a list of changes since given *timestamp*.
 
         For example, for returning all changes since *2016-01-01*::
@@ -250,21 +273,23 @@ class _Pages:
             from datetime import datetime
             wiki.pages.changes(datetime(2016, 1, 1).timestamp())
         """
-        return self._dokuwiki.send('wiki.getRecentChanges', timestamp)
+        changes = self._dokuwiki.send('wiki.getRecentChanges', timestamp)
+        assert type(changes) is list
+        return changes
 
-    def search(self, string):
+    def search(self, string: str) -> List[str]:
         """Performs a fulltext search on *string* and returns the first 15
         results.
         """
         return self._dokuwiki.send('dokuwiki.search', string)
 
-    def versions(self, page, offset=0):
+    def versions(self, page: str, offset: int = 0) -> List[str]:
         """Returns the available versions of *page*. *offset* can be used to
         list earlier versions in the history.
         """
         return self._dokuwiki.send('wiki.getPageVersions', page, offset)
 
-    def info(self, page, version=None):
+    def info(self, page: str, version: Optional[str] = None):
         """Returns informations of *page*. Informations of the last version
         is returned if *version* is not set.
         """
@@ -272,7 +297,7 @@ class _Pages:
                 if version is not None
                 else self._dokuwiki.send('wiki.getPageInfo', page))
 
-    def get(self, page, version=None):
+    def get(self, page: str, version: Optional[str] = None) -> str:
         """Returns the content of *page*. The content of the last version is
         returned if *version* is not set.
         """
@@ -281,7 +306,7 @@ class _Pages:
                 else self._dokuwiki.send('wiki.getPage', page))
 
 
-    def append(self, page, content, **options):
+    def append(self, page: str, content: str, **options: Dict[str, Any]):
         """Appends *content* text to *page*.
 
         Valid *options* are:
@@ -291,7 +316,7 @@ class _Pages:
         """
         return self._dokuwiki.send('dokuwiki.appendPage', page, content, options)
 
-    def html(self, page, version=None):
+    def html(self, page: str, version: Optional[str] = None) -> str:
         """Returns HTML content of *page*. The HTML content of the last version
         of the page is returned if *version* is not set.
         """
@@ -299,7 +324,7 @@ class _Pages:
                 if version is not None
                 else self._dokuwiki.send('wiki.getPageHTML', page))
 
-    def set(self, page, content, **options):
+    def set(self, page: str, content: str, **options: Dict[str, Any]):
         """Set/replace the *content* of *page*.
 
         Valid *options* are:
@@ -316,33 +341,33 @@ class _Pages:
             if str(err) != ERR:
                 raise DokuWikiError(err)
 
-    def delete(self, page):
+    def delete(self, page: str):
         """Delete *page* by setting an empty content."""
         return self.set(page, '')
 
-    def lock(self, page):
+    def lock(self, page: str) -> None:
         """Locks *page*."""
         result = self._dokuwiki.send('dokuwiki.setLocks',
                                      lock=[page], unlock=[])
         if result['lockfail']:
             raise DokuWikiError('unable to lock page')
 
-    def unlock(self, page):
+    def unlock(self, page: str) -> None:
         """Unlocks *page*."""
         result = self._dokuwiki.send('dokuwiki.setLocks',
                                      lock=[], unlock=[page])
         if result['unlockfail']:
             raise DokuWikiError('unable to unlock page')
 
-    def permission(self, page):
+    def permission(self, page: str):
         """Returns the permission level of *page*."""
         return self._dokuwiki.send('wiki.aclCheck', page)
 
-    def links(self, page):
+    def links(self, page: str) -> List[str]:
         """Returns a list of all links contained in *page*."""
         return self._dokuwiki.send('wiki.listLinks', page)
 
-    def backlinks(self, page):
+    def backlinks(self, page: str):
         """Returns a list of all links referencing *page*."""
         return self._dokuwiki.send('wiki.getBackLinks', page)
 
@@ -355,10 +380,10 @@ class _Medias:
         wiki = dokuwiki.DokuWiki('URL', 'User', 'Password')
         wiki.medias.list()
     """
-    def __init__(self, dokuwiki):
+    def __init__(self, dokuwiki: DokuWiki) -> None:
         self._dokuwiki = dokuwiki
 
-    def list(self, namespace='/', **options):
+    def list(self, namespace: str='/', **options: Dict[str, Any]):
         """Returns all medias of the given *namespace*.
 
         Valid *options* are:
@@ -370,7 +395,7 @@ class _Medias:
         """
         return self._dokuwiki.send('wiki.getAttachments', namespace, options)
 
-    def changes(self, timestamp):
+    def changes(self, timestamp: str):
         """Returns the list of medias changed since given *timestamp*.
 
         For example, for returning all changes since *2016-01-01*::
@@ -380,7 +405,14 @@ class _Medias:
         """
         return self._dokuwiki.send('wiki.getRecentMediaChanges', timestamp)
 
-    def get(self, media, dirpath=None, filename=None, overwrite=False, b64decode=False):
+    def get(
+        self,
+        media: str,
+        dirpath: Optional[str] = None,
+        filename: Optional[str] = None,
+        overwrite: bool = False,
+        b64decode: bool = False
+    ) -> Optional[bytes]:
         """Returns the binary data of *media* or save it to a file. If *dirpath*
         is not set the binary data is returned, otherwise the data is saved
         to a file. By default, the filename is the name of the media but it can
@@ -403,12 +435,13 @@ class _Medias:
 
         with open(filepath, 'wb') as fhandler:
             fhandler.write(data)
+        return None
 
-    def info(self, media):
+    def info(self, media: str):
         """Returns informations of *media*."""
         return self._dokuwiki.send('wiki.getAttachmentInfo', media)
 
-    def add(self, media, filepath, overwrite=True):
+    def add(self, media: str, filepath: str, overwrite: bool = True) -> None:
         """Set *media* from local file *filepath*. *overwrite* parameter specify
         if the media must be overwrite if it exists remotely.
         """
@@ -416,36 +449,48 @@ class _Medias:
             self._dokuwiki.send('wiki.putAttachment', media,
                                 Binary(fhandler.read()), ow=overwrite)
 
-    def set(self, media, _bytes, overwrite=True, b64encode=False):
+    def set(
+        self,
+        media: str,
+        _bytes: bytes,
+        overwrite: bool = True,
+        b64encode: bool = False
+    ) -> None:
         """Set *media* from *_bytes*. *overwrite* parameter specify if the media
         must be overwrite if it exists remotely.
         """
         data = base64.b64encode(_bytes) if b64encode else Binary(_bytes)
         self._dokuwiki.send('wiki.putAttachment', media, data, ow=overwrite)
 
-    def delete(self, media):
+    def delete(self, media: str):
         """Delete *media*."""
         return self._dokuwiki.send('wiki.deleteAttachment', media)
 
 
 class _Structs:
-    def __init__(self, dokuwiki):
+    def __init__(self, dokuwiki: DokuWiki) -> None:
         """Get the structured data of a given page."""
         self._dokuwiki = dokuwiki
 
-    def get_data(self, page, schema='', timestamp=0):
+    def get_data(self, page: str, schema: str = '', timestamp: int = 0):
         """Get the structured data of a given page."""
         return self._dokuwiki.send('plugin.struct.getData', page, schema, timestamp)
 
-    def save_data(self, page, data, summary='', minor=False):
+    def save_data(self, page: str, data: str, summary: str='', minor: bool = False):
         """Saves data for a given page (creates a new revision)."""
         return self._dokuwiki.send('plugin.struct.saveData', page, data, summary, minor)
 
-    def get_schema(self, name=''):
+    def get_schema(self, name: str=''):
         """Get info about existing schemas columns."""
         return self._dokuwiki.send('plugin.struct.getSchema', name)
 
-    def get_aggregation_data(self, schemas, columns, data_filter=[], sort=''):
+    def get_aggregation_data(
+        self,
+        schemas: List[str],
+        columns: List[str],
+        data_filter: List[str] = [],
+        sort: str=''
+    ):
         """Get the data that would be shown in an aggregation."""
         return self._dokuwiki.send(
             'plugin.struct.getAggregationData', schemas, columns, data_filter, sort)
@@ -455,11 +500,11 @@ class Dataentry:
     """Object that manage `data entries <https://www.dokuwiki.org/plugin:data>`_."""
 
     @staticmethod
-    def get(content, keep_order=False):
+    def get(content: str, keep_order: bool = False) -> Union[Dict[str, str], t_OrderedDict[str, str]]:
         """Get dataentry from *content*. *keep_order* indicates whether to
         return an ordered dictionary."""
+        dataentry: Union[Dict[str, str], t_OrderedDict[str, str]]
         if keep_order:
-            from collections import OrderedDict
             dataentry = OrderedDict()
         else:
             dataentry = {}
@@ -484,13 +529,13 @@ class Dataentry:
         return dataentry
 
     @staticmethod
-    def gen(name, data):
+    def gen(name: str, data: Dict[str, str]) -> str:
         """Generate dataentry *name* from *data*."""
         return '---- dataentry %s ----\n%s\n----' % (name, '\n'.join(
             '%s:%s' % (attr, value) for attr, value in data.items()))
 
     @staticmethod
-    def ignore(content):
+    def ignore(content: str) -> str:
         """Remove dataentry from *content*."""
         page_content = []
         start = False
